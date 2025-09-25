@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React Hooks Demo</title>
+    <!-- React CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Babel for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .navigation {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .nav-button {
+            padding: 10px 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .nav-button:hover {
+            background: #0056b3;
+        }
+        
+        .nav-button.active {
+            background: #28a745;
+        }
+        
+        .hook-demo {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            background: #fafafa;
+        }
+        
+        .hook-title {
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .demo-content {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #eee;
+        }
+        
+        .input, .button {
+            padding: 8px 12px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .button {
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .button:hover {
+            background: #0056b3;
+        }
+        
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+        
+        .success {
+            color: green;
+            font-size: 14px;
+        }
+        
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+        
+        .theme-dark {
+            background: #333;
+            color: white;
+        }
+        
+        .theme-light {
+            background: white;
+            color: black;
+        }
+        
+        .list-item {
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin: 5px 0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .list-item:hover {
+            background: #f0f0f0;
+        }
+        
+        .completed {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, 
+                useContext, useReducer, useImperativeHandle, useDebugValue, useId,
+                createContext, forwardRef, memo } = React;
+
+        // External store for useSyncExternalStore simulation
+        let currentTheme = 'light';
+        const themeListeners = new Set();
+
+        const themeStore = {
+            getSnapshot: () => currentTheme,
+            subscribe: (listener) => {
+                themeListeners.add(listener);
+                return () => themeListeners.delete(listener);
+            },
+            setTheme: (theme) => {
+                currentTheme = theme;
+                themeListeners.forEach(listener => listener());
+            }
+        };
+
+        // Create contexts
+        const AppThemeContext = createContext();
+        const UserContext = createContext();
+
+        // Main App Component
+        function App() {
+            const [activeDemo, setActiveDemo] = useState('useState');
+            const [theme, setTheme] = useState('light');
+            const [user, setUser] = useState(null);
+
+            const demos = [
+                'useState', 'useReducer', 'useEffect', 'useLayoutEffect', 
+                'useRef', 'useImperativeHandle', 'useMemo', 'useCallback',
+                'useContext', 'useId', 'custom-hooks'
+            ];
+
+            return (
+                <AppThemeContext.Provider value={{ theme, setTheme }}>
+                    <UserContext.Provider value={{ user, setUser }}>
+                        <div className={`container theme-${theme}`}>
+                            <h1>React Hooks Interactive Demo</h1>
+                            
+                            <div className="navigation">
+                                {demos.map(demo => (
+                                    <button
+                                        key={demo}
+                                        className={`nav-button ${activeDemo === demo ? 'active' : ''}`}
+                                        onClick={() => setActiveDemo(demo)}
+                                    >
+                                        {demo}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="demo-area">
+                                {activeDemo === 'useState' && <UseStateDemo />}
+                                {activeDemo === 'useReducer' && <UseReducerDemo />}
+                                {activeDemo === 'useEffect' && <UseEffectDemo />}
+                                {activeDemo === 'useLayoutEffect' && <UseLayoutEffectDemo />}
+                                {activeDemo === 'useRef' && <UseRefDemo />}
+                                {activeDemo === 'useImperativeHandle' && <UseImperativeHandleDemo />}
+                                {activeDemo === 'useMemo' && <UseMemoDemo />}
+                                {activeDemo === 'useCallback' && <UseCallbackDemo />}
+                                {activeDemo === 'useContext' && <UseContextDemo />}
+                                {activeDemo === 'useId' && <UseIdDemo />}
+                                {activeDemo === 'custom-hooks' && <CustomHooksDemo />}
+                            </div>
+                        </div>
+                    </UserContext.Provider>
+                </AppThemeContext.Provider>
+            );
+        }
+
+        // useState Demo
+        function UseStateDemo() {
+            const [count, setCount] = useState(0);
+            const [name, setName] = useState('');
+            const [isVisible, setIsVisible] = useState(true);
+
+            return (
+                <div className="hook-demo">
+                    <h2 className="hook-title">useState Hook</h2>
+                    <div className="demo-content">
+                        <div>
+                            <h4>Counter Example:</h4>
+                            <p>Count: {count}</p>
+                            <button className="button" onClick={() => setCount(count + 1)}>+1</button>
+                            <button className="button" onClick={() => setCount(prev => prev - 1)}>-1</button>
+                            <button className="button" onClick={() => setCount(0)}>Reset</button>
+                        </div>
+                        
+                        <div style={{marginTop: '20px'}}>
+                            <h4>Text Input Example:</h4>
+                            <input 
+                                className="input"
+                                value={name} 
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="Enter your name"
+                            />
+                            <p>Hello, {name || 'Anonymous'}!</p>
+                        </div>
+                        
+                        <div style={{marginTop: '20px'}}>
+                            <h4>Toggle Example:</h4>
+                            <button className="button" onClick={() => setIsVisible(!isVisible)}>
+                                {isVisible ? 'Hide' : 'Show'} Message
+                            </button>
+                            {isVisible && <p>This message can be toggled!</p>}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // useReducer Demo
+        function UseReducerDemo() {
+            const initialState = { count: 0, step: 1, history: [] };
+
+            function reducer(state, action) {
+                switch (action.type) {
+                    case 'INCREMENT':
+                        return {
+                            ...state,
+                            count: state.count + state.step,
+                            history: [...state.history, `+${state.step}`]
+                        };
+                    case 'DECREMENT':
+                        return {
+                            ...state,
+                            count: state.count - state.step,
+                            history: [...state.history, `-${state.step}`]
+                        };
+                    case 'SET_STEP':
+                        return { ...state, step: action.payload };
+                    case 'RESET':
+                        return { ...initialState, history: [...state.history, 'RESET'] };
+                    default:
+                        throw new Error();
+                }
+            }
+
+            const [state, dispatch] = useReducer(reducer, initialState);
+
+            return (
+                <div className="hook-demo">
+                    <h2 className="hook-title">useReducer Hook</h2>
+                    <div className="demo-content">
+                        <p>Count: {state.count}, Step: {state.step}</p>
+                        <button className="button" onClick={() => dispatch({ type: 'INCREMENT' })}>
+                            +{state.step}
+                        </button>
+                        <button className="button" onClick={() => dispatch({ type: 'DECREMENT' })}>
+                            -{state.step}
+                        </button>
+                        <button className="button" onClick={() => dispatch({ type: 'RESET' })}>
+                            Reset
+                        </button>
+                        
+                        <div style={{marginTop: '15px'}}>
+                            <label>Step Size: </label>
+                            <input 
+                                className="input"
+                                type="number" 
+                                value={state.step} 
+                                onChange={(e) => dispatch({ type: 'SET_STEP', payload: +e.target.value })} 
+                            />
+                        </div>
+                        
+                        <div style={{marginTop: '15px'}}>
+                            <h4>History:</h4>
+                            <div style={{maxHeight: '100px', overflowY: 'auto', border: '1px solid #ddd', padding: '10px'}}>
+                                {state.history.map((action, index) => (
+                                    <div key={index}>{index + 1}. {action}</div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // useEffect Demo
+        function UseEffectDemo() {
+            const [count, setCount] = useState(0);
+            const [data, setData] = useState(null);
+            const [loading, setLoading] = useState(false);
+
+            // Effect with no dependencies (runs every render)
+            useEffect(() => {
+                document.title = `Count: ${count}`;
+            });
+
+            // Effect with dependencies (runs when count changes)
+            useEffect(() => {
+                console.log('Count changed to:', count);
+            }, [count]);
+
+            // Effect with cleanup (runs once on mount)
+            useEffect(() => {
+                const interval = setInterval(() => {
+                    console.log('Timer tick');
+                }, 1000);
+
+                return () => clearInterval(interval);
+            }, []);
+
+            const fetchData = async () => {
+                setLoading(true);
+                // Simulate API call
+                setTimeout(() => {
+                    setData({ message: 'Data fetched!', timestamp: new Date().toLocaleTimeString() });
+                    setLoading(false);
+                }, 1000);
+            };
+
+            return (
+                <div className="hook-demo">
+                    <h2 className="hook-title">useEffect Hook</h2>
+                    <div className="demo-content">
+                        <div>
+                            <h4>Document Title Update:</h4>
+                            <p>Count: {count} (Check browser tab title)</p>
+                            <button className="button" onClick={() => setCount(count + 1)}>Increment</button>
+                        </div>
+                        
+                        <div style={{marginTop: '20px'}}>
+                            <h4>Data Fetching:</h4>
+                            <button className="button" onClick={fetchData} disabled={loading}>
+                                {loading ? 'Loading...' : 'Fetch Data'}
+                            </button>
+                            {data && (
+                                <div style={{marginTop: '10px', padding: '10px', border: '1px solid #ddd'}}>
+                                    <p>{data.message}</p>
+                                    <small>Fetched at: {data.timestamp}</small>
+                                </div>
+                            )}
+                        </div>
+                        
+                        <div style={{marginTop: '15px'}}>
+                            <small>Check console for effect logs</small>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // useLayoutEffect Demo
+        function UseLayoutEffectDemo() {
+            const [height, setHeight] = useState('auto');
+            const textRef = useRef(null);
+
+            useLayoutEffect(() => {
+                if (textRef.current) {
+                    const rect = textRef.current.getBoundingClientRect();
+                    setHeight(rect.height + 'px');
+                }
+            });
+
+            const [text, setText] = useState('This is some text that will grow when you add more content to it.');
+
+            return (
+                <div className="hook-demo">
+                    <h2 className="hook-title">useLayoutEffect Hook</h2>
+                    <div className="demo-content">
+                        <h4>Dynamic Height Measurement:</h4>
+                        <textarea
+                            ref={textRef}
+                            className="input"
+                            value={text}
+                            onChange={(e) => setText(e.target.value)}
+                            style={{width: '100%', resize: 'none'}}
+                            rows={3}
+                        />
+                        <p>Measured height: {height}</p>
+                        <small>useLayoutEffect measures the DOM synchronously after mutations</small>
+                    </div>
+                </div>
+            );
+        }
+
+        // useRef Demo
+        function UseRefDemo() {
+            const inputRef = useRef(null);
+            const countRef = useRef(0);
+            const [renderCount, setRenderCount] = useState(0);
+
+            const focusInput = () => {
+                inputRef.current?.focus();
+            };
+
+            const incrementSilent = () => {
+                countRef.current += 1;
+                console.log('Silent count:', countRef.current);
+            };
+
+            const forceRender = () => {
+                setRenderCount(prev => prev + 1);
+            };
+
+            return (
+                <div className="hook-demo">
+                    <h2 className="hook-title">useRef Hook</h2>
+                    <div className="demo-content">
+                        <div>
+                            <h4>DOM Reference:</h4>
+                            <input ref={inputRef} className="input" placeholder="Click button to focus me" />
+                            <button className="button" onClick={focusInput}>Focus Input</button>
+                        </div>
+                        
+                        <div style={{marginTop: '20px'}}>
+                            <h4>Persistent Value (doesn't cause re-render):</h4>
+                            <p>Silent count: {countRef.current} (check console)</p>
+                            <p>Render count: {renderCount}</p>
+                            <button className="button" onClick={incrementSilent}>Increment Silent</button>
+                            <button className="button" onClick={forceRender}>Force Re-render</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // useImperativeHandle Demo
+        const CustomInput = forwardRef((props, ref) => {
+            const inputRef = useRef();
+
+            useImperativeHandle(ref, () => ({
+                focus: () => inputRef.current?.focus(),
+                blur: () => inputRef.current?.blur(),
+                getValue: () => inputRef.current?.value || '',
+                clear: () => {
+                    if (inputRef.current) inputRef.current.value = '';
+                }
+            }));
+
+            return <input ref={inputRef} className="input" {...props} />;
+        });
+
+        function UseImperativeHandleDemo() {
+            const customInputRef = useRef();
+
+            return (
+                <div className="hook-demo">
+                    <h2 className="hook-title">useImperativeHandle Hook</h2>
+                    <div className="demo-content">
+                        <h4>Custom Input with Imperative API:</h4>
+                        <CustomInput ref={customInputRef} placeholder="Custom input with imperative methods" />
+                        <div style={{marginTop: '10px'}}>
+                            <button className="button" onClick={() => customInputRef.current?.focus()}>
+                                Focus
+                            </button>
+                            <button className="button" onClick={() => customInputRef.current?.blur()}>
+                                Blur
+                            </button>
+                            <button className="button" onClick={() => alert(customInputRef.current?.getValue())}>
+                                Get Value
+                            </button>
+                            <button className="button" onClick={() => customInputRef.current?.clear()}>
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // useMemo Demo
+        function UseMemoDemo() {
+            const [items, setItems] = useState(Array.from({length: 1000}, (_, i) => `Item ${i + 1}`));
+            const [filter, setFilter] = useState('');
+            const [sortOrder, setSortOrder] = useState('asc');
+
+            const processedItems = useMemo(() => {
+                console.log('Processing items...'); // This should only log when dependencies change
+                
+                return items
+                    .filter(item => item.toLowerCase().includes(filter.toLowerCase()))
+                    .sort((a, b) => {
+                        const multiplier = sortOrder === 'asc' ? 1 : -1;
+                        return a.localeCompare(b) * multiplier;
+                    })
+                    .slice(0, 10); // Only show first 10 for demo
+            }, [items, filter, sortOrder]);
+
+            return (
+                <div className="hook-demo">
+                    <h2 className="hook-title">useMemo Hook</h2>
+                    <div className="demo-content">
+                        <h4>Expensive List Processing:</h4>
+                        <div>
+                            <input 
+                                className="input"
+                                value={filter}
+                                onChange={(e) => setFilter(e.target.value)}
+                                placeholder="Filter items..."
+                            />
+                            <button 
+                                className="button" 
+                                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                            >
+                                Sort: {sortOrder}
+                            </button>
+                        </div>
+                        
+                        <div style={{marginTop: '15px', maxHeight: '200px', overflowY: 'auto', border: '1px solid #ddd'}}>
+                            {processedItems.map(item => (
+                                <div key={item} className="list-item">{item}</div>
+                            ))}
+                        </div>
+                        <small>Check console - processing should only happen when filter/sort changes</small>
+                    </div>
+                </div>
+            );
+        }
+
+        // useCallback Demo
+        const ExpensiveChild = memo(({ onClick, data }) => {
+            console.log('ExpensiveChild rendered with data:', data);
+            
+            return (
+                <div style={{border: '1px solid #ddd', padding: '10px', margin: '5px 0'}}>
+                    <p>Data: {data}</p>
+                    <button className="button" onClick={onClick}>Click me</button>
+                </div>
+            );
+        });
+
+        function UseCallbackDemo() {
+            const [count, setCount] = useState(0);
+            const [name, setName] = useState('');
+
+            // Without useCallback, this would be a new function on every render
+            const handleIncrement = useCallback(() => {
+                setCount(prev => prev + 1);
+            }, []); // Empty deps since we use functional update
+
+            const handleNameClick = useCallback(() => {
+                alert(`Hello, ${name}!`);
+            }, [name]); // Re-create when name changes
+
+            return (
+                <div className="hook-demo">
+                    <h2 className="hook-title">useCallback Hook</h2>
+                    <div className="demo-content">
+                        <div>
+                            <input 
+                                className="input"
+                                value={name} 
+                                onChange={(e) => setName(e.target.value)} 
+                                placeholder="Enter name"
+                            />
+                            <p>Count: {count}</p>
+                        </div>
+                        
+                        <h4>Memoized Children (check console):</h4>
+                        <ExpensiveChild onClick={handleIncrement} data="static data" />
+                        <ExpensiveChild onClick={handleNameClick} data={name || 'no name'} />
+                        
+                        <small>Only the second child should re-render when name changes</small>
+                    </div>
+                </div>
+            );
+        }
+
+        // useContext Demo
+        function UseContextDemo() {
+            const { theme, setTheme } = useContext(AppThemeContext);
+            const { user, setUser } = useContext(UserContext);
+
+            const login = () => {
+                setUser({ name: 'John Doe', id: 1 });
+            };
+
+            const logout = () => {
+                setUser(null);
+            };
+
+            return (
+                <div className="hook-demo">
+                    <h2 className="hook-title">useContext Hook</h2>
+                    <div className="demo-content">
+                        <div>
+                            <h4>Theme Context:</h4>
+                            <p>Current theme: {theme}</p>
+                            <button 
+                                className="button" 
+                                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                            >
+                                Toggle Theme
+                            </button>
+                        </div>
+                        
+                        <div style={{marginTop: '20px'}}>
+                            <h4>User Context:</h4>
+                            {user ? (
+                                <div>
+                                    <p>Welcome, {user.name}!</p>
+                                    <button className="button" onClick={logout}>Logout</button>
+                                </div>
+                            ) : (
+                                <div>
+                                    <p>Please login</p>
+                                    <button className="button" onClick={login}>Login</button>
+                                </div>
+                            )}
+                        </div>
+                        
+                        <small>Context values are shared across the entire app</small>
+                    </div>
+                </div>
+            );
+        }
+
+        // useId Demo
+        function FormField({ label, type = 'text', ...props }) {
+            const id = useId();
+            const descriptionId = `${id}-description`;
+
+            return (
+                <div style={{marginBottom: '15px'}}>
+                    <label htmlFor={id} style={{display: 'block', marginBottom: '5px'}}>{label}</label>
+                    <input 
+                        id={id}
+                        className="input"
+                        type={type}
+                        aria-describedby={descriptionId}
+                        {...props}
+                    />
+                    <div id={descriptionId} style={{fontSize: '12px', color: '#666'}}>
+                        {props.placeholder && `Format: ${props.placeholder}`}
+                    </div>
+                </div>
+            );
+        }
+
+        function UseIdDemo() {
+            const formId = useId();
+
+            return (
+                <div className="hook-demo">
+                    <h2 className="hook-title">useId Hook</h2>
+                    <div className="demo-content">
+                        <form aria-labelledby={`${formId}-title`}>
+                            <h4 id={`${formId}-title`}>User Registration Form</h4>
+                            <FormField 
+                                label="Email" 
+                                type="email" 
+                                placeholder="user@example.com"
+                            />
+                            <FormField 
+                                label="Password" 
+                                type="password" 
+                                placeholder="8+ characters"
+                            />
+                            <FormField 
+                                label="Confirm Password" 
+                                type="password" 
+                                placeholder="Must match password"
+                            />
+                            <button type="submit" className="button">Register</button>
+                        </form>
+                        <small>Each form field has unique, accessible IDs (check DOM inspector)</small>
+                    </div>
+                </div>
+            );
+        }
+
+        // Custom Hooks Demo
+        function useCounter(initialValue = 0) {
+            const [count, setCount] = useState(initialValue);
+            
+            useDebugValue(count > 10 ? 'High' : 'Low');
+            
+            const increment = useCallback(() => setCount(c => c + 1), []);
+            const decrement = useCallback(() => setCount(c => c - 1), []);
+            const reset = useCallback(() => setCount(initialValue), [initialValue]);
+            
+            return { count, increment, decrement, reset };
+        }
+
+        function useOnlineStatus() {
+            const [isOnline, setIsOnline] = useState(navigator.onLine);
+            
+            useDebugValue(isOnline ? 'Online' : 'Offline');
+            
+            useEffect(() => {
+                function handleOnline() {
+                    setIsOnline(true);
+                }
+                
+                function handleOffline() {
+                    setIsOnline(false);
+                }
+                
+                window.addEventListener('online', handleOnline);
+                window.addEventListener('offline', handleOffline);
+                
+                return () => {
+                    window.removeEventListener('online', handleOnline);
+                    window.removeEventListener('offline', handleOffline);
+                };
+            }, []);
+            
+            return isOnline;
+        }
+
+        function CustomHooksDemo() {
+            const counter = useCounter(5);
+            const isOnline = useOnlineStatus();
+
+            return (
+                <div className="hook-demo">
+                    <h2 className="hook-title">Custom Hooks (useDebugValue)</h2>
+                    <div className="demo-content">
+                        <div>
+                            <h4>Custom Counter Hook:</h4>
+                            <p>Count: {counter.count}</p>
+                            <button className="button" onClick={counter.increment}>+</button>
+                            <button className="button" onClick={counter.decrement}>-</button>
+                            <button className="button" onClick={counter.reset}>Reset</button>
+                        </div>
+                        
+                        <div style={{marginTop: '20px'}}>
+                            <h4>Online Status Hook:</h4>
+                            <p>Status: {isOnline ? '🟢 Online' : '🔴 Offline'}</p>
+                            <small>Try disconnecting your internet to test</small>
+                        </div>
+                        
+                        <div style={{marginTop: '15px'}}>
+                            <small>Open React DevTools to see useDebugValue labels</small>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Render the app
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+    </script>
+</body>
+</html>
