@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DOM Manipulation Examples</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+      html, body {
+        font-size: 1.5em;
+        font-family: Arial, sans-serif;
+      }
+      .highlight {
+        background: yellow;
+        font-weight: bold;
+        font-size: 1.2em;
+      }
+      #box, #box2 {
+        width: 250px;
+        height: 150px;
+        margin: 20px 0;
+        padding: 20px;
+        text-align: center;
+        line-height: 120px;
+        border: 2px solid black;
+        font-size: 1.3em;
+      }
+      #box {
+        background: lightblue;
+      }
+      #box2 {
+        background: lightgreen;
+      }
+      button, h1, h2, div, ul, li {
+        font-size: 1.2em;
+      }
+  </style>
+</head>
+<body>
+
+  <h1>DOM Manipulation Demo</h1>
+
+  <!-- 1. Injecting JS -->
+  <button onclick="alert('Hello from inline JS')">Inline JS Button</button>
+
+  <script>
+    console.log('Hello from internal script');
+  </script>
+
+  <!-- 2. Manipulating CSS -->
+  <div id="myDiv">This text will change color</div>
+  <button onclick="document.getElementById('myDiv').style.color = 'red'">
+    Change Color (Vanilla JS)
+  </button>
+
+  <!-- 3. jQuery Manipulation -->
+  <h2>jQuery Examples</h2>
+
+  <div id="content">Original Text</div>
+  <button id="changeTextBtn">Change Text</button>
+
+  <ul id="list">
+    <li>Item 1</li>
+    <li>Item 2</li>
+  </ul>
+  <button id="addItemBtn">Add Item</button>
+
+  <button id="btn">Click Me (jQuery)</button>
+
+  <div id="box">Box</div>
+  <button id="toggleBtn">Toggle Box (jQuery)</button>
+
+  <div id="box2">Styled Box</div>
+  <button id="styleBtn">Toggle Highlight</button>
+
+  <script>
+    // jQuery examples
+    $('#changeTextBtn').click(function() {
+      $('#content').text('Changed with jQuery');
+    });
+
+    $('#addItemBtn').click(function() {
+      $('#list').append('<li>New Item</li>');
+    });
+
+    $('#btn').click(function() {
+      alert('Button clicked with jQuery!');
+    });
+
+    $('#toggleBtn').click(function() {
+      $('#box').fadeToggle(500);
+    });
+
+    $('#styleBtn').click(function() {
+      $('#box2').toggleClass('highlight');
+    });
+
+    // Vanilla JS optional
+    const newDiv = document.createElement('div');
+    newDiv.textContent = "This was added via Vanilla JS createElement()";
+    document.body.appendChild(newDiv);
+  </script>
+
+</body>
+</html>
