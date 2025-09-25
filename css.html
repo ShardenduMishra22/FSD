@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS Demo</title>
+<style>
+/* 1. Selectors */
+p { color: black; } /* type selector */
+.highlight { background-color: yellow; } /* class selector */
+#main-title { font-size: 24px; color: blue; } /* ID selector */
+h1, h2, h3 { font-family: Arial, sans-serif; } /* group selector */
+div p { color: green; } /* descendant selector */
+div > span { font-weight: bold; } /* child selector */
+a[href^="https"] { color: darkred; } /* attribute selector */
+a:hover { text-decoration: underline; } /* pseudo-class */
+p::first-line { font-weight: bold; } /* pseudo-element */
+* { box-sizing: border-box; } /* universal selector */
+
+/* 2. Box Model */
+.box {
+    width: 200px;
+    padding: 10px;
+    border: 5px solid black;
+    margin: 20px;
+    background-color: lightblue;
+}
+
+/* 3. Positioning */
+.relative { position: relative; top: 10px; left: 20px; background-color: lightgreen; padding:5px; }
+.absolute-container { position: relative; width: 300px; height: 150px; background-color: lightgrey; margin-bottom: 20px; }
+.absolute-box { position: absolute; top: 20px; left: 50px; width: 100px; height: 50px; background-color: red; }
+
+/* 4. Float */
+.float-left { float: left; margin: 10px; background-color: orange; width: 100px; height: 50px; }
+.clearfix::after { content: ""; display: table; clear: both; }
+
+/* 5. Flexbox */
+.flex-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    background-color: #f0f0f0;
+    padding: 10px;
+    margin-bottom: 20px;
+}
+.flex-container div {
+    background-color: pink;
+    padding: 10px;
+    margin: 5px;
+    flex: 1;
+}
+
+/* 6. Grid */
+.grid-container {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.grid-container div {
+    background-color: lightcoral;
+    padding: 20px;
+}
+
+/* 7. Units */
+.unit-box {
+    width: 50vw; /* viewport width */
+    height: 10vh; /* viewport height */
+    background-color: lightyellow;
+    margin-bottom: 20px;
+    text-align: center;
+    line-height: 10vh;
+}
+</style>
+</head>
+<body>
+
+<!-- Selectors -->
+<h1 id="main-title">CSS Demo</h1>
+<p class="highlight">This paragraph has a class selector.</p>
+<div>
+    <p>This paragraph is inside a div (descendant selector).</p>
+    <span>This span is a child (child selector).</span>
+</div>
+<a href="https://example.com" target="_blank">External Link</a>
+<p>Check the <span style="color:red;">first line</span> styling.</p>
+
+<hr>
+
+<!-- Box Model -->
+<div class="box">Box Model Example</div>
+
+<!-- Positioning -->
+<div class="relative">Relative Positioned Box</div>
+<div class="absolute-container">
+    Absolute Positioned Box
+    <div class="absolute-box">Absolute</div>
+</div>
+
+<!-- Float -->
+<div class="clearfix">
+    <div class="float-left">Float Left</div>
+    <p>Text wrapping around the floated box. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+</div>
+
+<!-- Flexbox -->
+<div class="flex-container">
+    <div>Flex 1</div>
+    <div>Flex 2</div>
+    <div>Flex 3</div>
+</div>
+
+<!-- Grid -->
+<div class="grid-container">
+    <div>Grid 1</div>
+    <div>Grid 2</div>
+    <div>Grid 3</div>
+</div>
+
+<!-- Units -->
+<div class="unit-box">Viewport Units Box</div>
+
+</body>
+</html>
